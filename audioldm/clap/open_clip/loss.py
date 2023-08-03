@@ -210,9 +210,9 @@ class ClipLoss(nn.Module):
                 t_logits_per_text = logit_scale_t * text_features @ audio_features_mlp.T
 
             # calculated ground-truth and cache if enabled
-            num_logits = a_logits_per_audio.shape[0]
+            num_logits = a_logits_per_audio.shape[0]    # batch_size
             if self.prev_num_logits != num_logits or device not in self.labels:
-                labels = torch.arange(num_logits, device=device, dtype=torch.long)
+                labels = torch.arange(num_logits, device=device, dtype=torch.long)  # [0,1,2,3....batch_size-1]
                 if self.world_size > 1 and self.local_loss:
                     labels = labels + num_logits * self.rank
                 if self.cache_labels:

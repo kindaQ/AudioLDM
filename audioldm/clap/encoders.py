@@ -35,7 +35,7 @@ class CLAPAudioEmbeddingClassifierFreev2(nn.Module):
         self.sampling_rate = sampling_rate
         self.unconditional_prob = unconditional_prob
         self.random_mute = random_mute
-        self.tokenize = RobertaTokenizer.from_pretrained("roberta-base")
+        self.tokenize = RobertaTokenizer.from_pretrained("D:\PythonProjects\AudioLDM\\audioldm\clap\\training\\roberta-base", local_files_only=True)
         self.max_random_mute_portion = max_random_mute_portion
         self.training_mode = training_mode
         self.model, self.model_cfg = create_model(
@@ -89,7 +89,9 @@ class CLAPAudioEmbeddingClassifierFreev2(nn.Module):
         # waveform: [bs, t_steps]
         with torch.no_grad():
             self.embed_mode = "audio"
-            audio_emb = self(waveform.cuda())
+            if torch.cuda.is_available():
+                waveform.to("cuda")
+            audio_emb = self(waveform)
             self.embed_mode = "text"
             text_emb = self(text)
             similarity = F.cosine_similarity(audio_emb, text_emb, dim=2)

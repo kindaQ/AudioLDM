@@ -80,10 +80,10 @@ def build_model(
     # No normalization here
     latent_diffusion = LatentDiffusion(**config["model"]["params"])
 
-    resume_from_checkpoint = ckpt_path
+    # resume_from_checkpoint = ckpt_path        #  加载chekpoint
 
-    checkpoint = torch.load(resume_from_checkpoint, map_location=device)
-    latent_diffusion.load_state_dict(checkpoint["state_dict"])
+    # checkpoint = torch.load(resume_from_checkpoint, map_location=device)
+    # latent_diffusion.load_state_dict(checkpoint["state_dict"])
 
     latent_diffusion.eval()
     latent_diffusion = latent_diffusion.to(device)

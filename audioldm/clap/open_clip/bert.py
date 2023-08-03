@@ -14,8 +14,8 @@ def bert_embeddings(text):
 
 from transformers import RobertaTokenizer, RobertaModel
 
-tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
-model = RobertaModel.from_pretrained("roberta-base")
+tokenizer = RobertaTokenizer.from_pretrained("D:\PythonProjects\AudioLDM\\audioldm\clap\\training\\roberta-base", local_files_only=True)
+model = RobertaModel.from_pretrained("D:\PythonProjects\AudioLDM\\audioldm\clap\\training\\roberta-base", local_files_only=True)
 text = "Replace me by any text you'd like."
 
 

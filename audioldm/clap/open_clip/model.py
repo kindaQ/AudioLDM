@@ -514,7 +514,7 @@ class CLAP(nn.Module):
                 nn.Linear(self.joint_embed_shape, self.joint_embed_shape),
             )
         elif text_cfg.model_type == "roberta":
-            self.text_branch = RobertaModel.from_pretrained("roberta-base")
+            self.text_branch = RobertaModel.from_pretrained("D:\PythonProjects\AudioLDM\\audioldm\clap\\training\\roberta-base", local_files_only=True)
             self.text_transform = MLPLayers(
                 units=[
                     self.joint_embed_shape,

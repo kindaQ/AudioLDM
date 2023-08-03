@@ -52,7 +52,7 @@ class LatentDiffusion(DDPM):
         super().__init__(conditioning_key=conditioning_key, *args, **kwargs)
         self.concat_mode = concat_mode
         self.cond_stage_trainable = cond_stage_trainable
-        self.cond_stage_key = cond_stage_key
+        self.cond_stage_key = cond_stage_key    # text
         self.cond_stage_key_orig = cond_stage_key
         try:
             self.num_downs = len(first_stage_config.params.ddconfig.ch_mult) - 1
@@ -122,7 +122,7 @@ class LatentDiffusion(DDPM):
         else:
             assert config != "__is_first_stage__"
             assert config != "__is_unconditional__"
-            model = instantiate_from_config(config)
+            model = instantiate_from_config(config)     # default
             self.cond_stage_model = model
         self.cond_stage_model = self.cond_stage_model.to(self.device)
 
@@ -138,7 +138,7 @@ class LatentDiffusion(DDPM):
         return self.scale_factor * z
 
     def get_learned_conditioning(self, c):
-        if self.cond_stage_forward is None:
+        if self.cond_stage_forward is None:     # default
             if hasattr(self.cond_stage_model, "encode") and callable(
                 self.cond_stage_model.encode
             ):
@@ -148,10 +148,10 @@ class LatentDiffusion(DDPM):
             else:
                 # Text input is list
                 if type(c) == list and len(c) == 1:
-                    c = self.cond_stage_model([c[0], c[0]])
-                    c = c[0:1]
+                    c = self.cond_stage_model([c[0], c[0]])     # CLAPAudioEmbeddingClassifierFreev2   第一个step的condition
+                    c = c[0:1]      # 只取第1个
                 else:
-                    c = self.cond_stage_model(c)
+                    c = self.cond_stage_model(c)    # here
         else:
             assert hasattr(self.cond_stage_model, self.cond_stage_forward)
             c = getattr(self.cond_stage_model, self.cond_stage_forward)(c)
@@ -169,7 +169,7 @@ class LatentDiffusion(DDPM):
         return_original_cond=False,
         bs=None,
     ):
-        x = super().get_input(batch, k)
+        x = super().get_input(batch, k)     # k= default fbank  -> [batch,1,1,1024,64]=0
 
         if bs is not None:
             x = x[:bs]
@@ -177,28 +177,28 @@ class LatentDiffusion(DDPM):
         x = x.to(self.device)
 
         if return_first_stage_encode:
-            encoder_posterior = self.encode_first_stage(x)
+            encoder_posterior = self.encode_first_stage(x)  # 对初始条件计算emb
             z = self.get_first_stage_encoding(encoder_posterior).detach()
-        else:
+        else:   # here
             z = None
 
-        if self.model.conditioning_key is not None:
+        if self.model.conditioning_key is not None:     # default  film
             if cond_key is None:
-                cond_key = self.cond_stage_key
-            if cond_key != self.first_stage_key:
+                cond_key = self.cond_stage_key      # text
+            if cond_key != self.first_stage_key:    # text  fbank
                 if cond_key in ["caption", "coordinates_bbox"]:
                     xc = batch[cond_key]
                 elif cond_key == "class_label":
                     xc = batch
-                else:
+                else:       # here
                     # [bs, 1, 527]
-                    xc = super().get_input(batch, cond_key)
+                    xc = super().get_input(batch, cond_key) # text: [text]
                     if type(xc) == torch.Tensor:
                         xc = xc.to(self.device)
             else:
                 xc = x
-            if not self.cond_stage_trainable or force_c_encode:
-                if isinstance(xc, dict) or isinstance(xc, list):
+            if not self.cond_stage_trainable or force_c_encode:     # force_e_encode: true
+                if isinstance(xc, dict) or isinstance(xc, list):    # xc: list
                     c = self.get_learned_conditioning(xc)
                 else:
                     c = self.get_learned_conditioning(xc.to(self.device))
@@ -244,7 +244,7 @@ class LatentDiffusion(DDPM):
 
     @torch.no_grad()
     def encode_first_stage(self, x):
-        return self.first_stage_model.encode(x)
+        return self.first_stage_model.encode(x)     # autoencoder.encode
 
     def apply_model(self, x_noisy, t, cond, return_ids=False):
 
@@ -635,7 +635,7 @@ class LatentDiffusion(DDPM):
     def generate_sample(
         self,
         batchs,
-        ddim_steps=200,
+        ddim_steps=100,  # default 200
         ddim_eta=1.0,
         x_T=None,
         n_candidate_gen_per_text=1,
@@ -665,7 +665,7 @@ class LatentDiffusion(DDPM):
             for batch in batchs:
                 z, c = self.get_input(
                     batch,
-                    self.first_stage_key,
+                    self.first_stage_key,   # default  fbank
                     cond_key=self.cond_stage_key,
                     return_first_stage_outputs=False,
                     force_c_encode=True,
@@ -676,7 +676,7 @@ class LatentDiffusion(DDPM):
 
                 # Generate multiple samples
                 batch_size = z.shape[0] * n_candidate_gen_per_text
-                c = torch.cat([c] * n_candidate_gen_per_text, dim=0)
+                c = torch.cat([c] * n_candidate_gen_per_text, dim=0)    # 1个text生成3段audio
                 text = text * n_candidate_gen_per_text
 
                 if unconditional_guidance_scale != 1.0:

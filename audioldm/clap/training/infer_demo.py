@@ -8,7 +8,7 @@ from training.data import get_audio_features
 from training.data import int16_to_float32, float32_to_int16
 from transformers import RobertaTokenizer
 
-tokenize = RobertaTokenizer.from_pretrained("roberta-base")
+tokenize = RobertaTokenizer.from_pretrained("D:\PythonProjects\AudioLDM\\audioldm\clap\\training\\roberta-base", local_files_only=True)
 
 
 def tokenizer(text):

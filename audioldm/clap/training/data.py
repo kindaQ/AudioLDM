@@ -55,7 +55,7 @@ def tokenizer(text):
 
 from transformers import RobertaTokenizer
 
-tokenize = RobertaTokenizer.from_pretrained("roberta-base")
+tokenize = RobertaTokenizer.from_pretrained("D:\PythonProjects\AudioLDM\\audioldm\clap\\training\\roberta-base", local_files_only=True)
 
 
 def tokenizer(text):
